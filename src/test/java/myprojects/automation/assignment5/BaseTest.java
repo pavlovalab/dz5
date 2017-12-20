@@ -66,7 +66,6 @@ public abstract class BaseTest {
             case "ie":
             case "internet explorer":
             case "chrome":
-            case "phantomjs":
             default:
                 return false;
         }
