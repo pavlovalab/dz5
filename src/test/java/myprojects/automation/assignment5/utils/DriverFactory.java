@@ -4,7 +4,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
-import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
@@ -32,11 +31,6 @@ public class DriverFactory {
                 capabilities.setCapability(InternetExplorerDriver.NATIVE_EVENTS, false);
                 capabilities.setCapability(InternetExplorerDriver.IE_ENSURE_CLEAN_SESSION, true);
                 return new InternetExplorerDriver(capabilities);
-            case "phantomjs":
-                System.setProperty(
-                        "phantomjs.binary.path",
-                        new File(DriverFactory.class.getResource("/phantomjs.exe").getFile()).getPath());
-                return new PhantomJSDriver();
             case "chrome":
             default:
                 System.setProperty(
