@@ -4,7 +4,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
-import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.ie.InternetExplorerOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.io.File;
@@ -27,10 +27,9 @@ public class DriverFactory {
                 System.setProperty(
                         "webdriver.ie.driver",
                         new File(DriverFactory.class.getResource("/IEDriverServer.exe").getFile()).getPath());
-                DesiredCapabilities capabilities = DesiredCapabilities.internetExplorer();
-                capabilities.setCapability(InternetExplorerDriver.NATIVE_EVENTS, false);
-                capabilities.setCapability(InternetExplorerDriver.IE_ENSURE_CLEAN_SESSION, true);
-                return new InternetExplorerDriver(capabilities);
+                InternetExplorerOptions ieOptions = new InternetExplorerOptions()
+                        .destructivelyEnsureCleanSession();
+                return new InternetExplorerDriver(ieOptions);
             case "chrome":
             default:
                 System.setProperty(
