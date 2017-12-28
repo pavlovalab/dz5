@@ -29,6 +29,7 @@ public class DriverFactory {
                         new File(DriverFactory.class.getResource("/IEDriverServer.exe").getFile()).getPath());
                 InternetExplorerOptions ieOptions = new InternetExplorerOptions()
                         .destructivelyEnsureCleanSession();
+                ieOptions.setCapability(InternetExplorerDriver.NATIVE_EVENTS, false);
                 return new InternetExplorerDriver(ieOptions);
             case "chrome":
             default:
