@@ -9,14 +9,13 @@ public class PlaceOrderTest extends BaseTest {
     @Test
     public void checkSiteVersion() throws InterruptedException {
         // TODO open main page and validate website version
-        actions.checkSiteVersion();
+        actions.checkSiteVersion(isMobileTesting);
     }
 
     @Test
     public void createNewOrder() throws InterruptedException {
         // TODO implement order creation test
 
-        System.out.println("createNewOrder");
         // open random product
         actions.openRandomProduct();
 

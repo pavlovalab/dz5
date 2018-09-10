@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -43,10 +44,14 @@ public class GeneralActions {
         waitForContentLoad();
     }
 
-    public void checkSiteVersion() {
+    public void checkSiteVersion(boolean mobile) {
         // TODO open main page and validate website version
-        System.out.println("checkSiteVersion");
+        CustomReporter.log("Проверка открываемой версии магазина");
         navigate(Properties.getBaseUrl());
+
+        List<WebElement> rows = driver.findElements(By.cssSelector("div.mobile"));
+        if (mobile) assertFalse(rows.isEmpty(), "Не мобильная версия сайта");
+        else assertTrue(rows.isEmpty(), "Не полная версия сайта");
     }
 
     public void openRandomProduct() {
@@ -56,7 +61,7 @@ public class GeneralActions {
         CustomReporter.log("Проверка появления нового продукта на сайте");
 
         WebElement all_button = driver.findElement(By.className("all-product-link"));
-        assertTrue (all_button.isEnabled(), "Невозможно перейти к спику всех продуктов");
+        assertTrue(all_button.isEnabled(), "Невозможно перейти к спику всех продуктов");
 
         String next_href1 = all_button.getAttribute("href");
         navigate(next_href1);
@@ -67,7 +72,7 @@ public class GeneralActions {
         WebElement item = null;
 
         List<WebElement> rows = driver.findElements(By.cssSelector(".product-description>h1>a"));
-        assertTrue (!rows.isEmpty(), "Пустой список продуктов");
+        assertTrue(!rows.isEmpty(), "Пустой список продуктов");
 
         Random random = new Random();
         int index = random.nextInt(rows.size());
@@ -77,7 +82,7 @@ public class GeneralActions {
         //      rows.get(index).click();
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("main")));
-     }
+    }
 
     /**
      * Extracts product information from opened product details page.
@@ -92,10 +97,14 @@ public class GeneralActions {
         return new ProductData(product_name, 0, Float.parseFloat(product_price));
     }
 
-    public void addProductToCart(ProductData product) {
+    public void addProductToCart(ProductData product) throws InterruptedException {
+
+//        Thread.sleep(2000);
+        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("#quantity_wanted[style='display: block;']")));
         WebElement btn = driver.findElement(By.cssSelector(".add-to-cart"));
+
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
-//        driver.findElement(By.cssSelector(".add-to-cart")).submit();
+//        driver.findElement(By.cssSelector("button.add-to-cart")).click();
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#blockcart-modal[style='display: block;']")));
 
@@ -103,7 +112,7 @@ public class GeneralActions {
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
 
         List<WebElement> rows = driver.findElements(By.cssSelector(".cart-item"));
-        assertTrue (!rows.isEmpty(), "Пустой список в корзине");
+        assertTrue(!rows.isEmpty(), "Пустой список в корзине");
 
         assertEquals(rows.size(), 1, "В корзине больше одной строки");
 
@@ -111,7 +120,28 @@ public class GeneralActions {
 
         List<WebElement> rows2 = driver.findElements(By.cssSelector(".product-line-info>.value"));
 
-        assertTrue(driver.findElement(By.cssSelector(".product-price")).getText().contains(product.getPrice()), "Не соответствует цена продукта");
+        assertTrue(driver.findElement(By.cssSelector(".product-price>strong")).getText().contains(product.getPrice()), "Не соответствует цена продукта");
         assertEquals(driver.findElement(By.name("product-quantity-spin")).getAttribute("value"), "1", "Не соответствует количество продукта");
+
+        btn = driver.findElement(By.cssSelector("div.checkout>div>.btn"));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("body#checkout")));
+        driver.findElement(By.name("firstname")).sendKeys("Alex");
+        driver.findElement(By.name("lastname")).sendKeys("Pav");
+        driver.findElement(By.name("email")).sendKeys("alex@pav.by");
+
+        btn = driver.findElement(By.cssSelector("button.continue"));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("body#checkout")));
+        driver.findElement(By.name("address1")).sendKeys("Rokossovskogo");
+        driver.findElement(By.name("postcode")).sendKeys("220094");
+        driver.findElement(By.name("city")).sendKeys("Minsk");
+
+        btn = driver.findElement(By.cssSelector("button.continue"));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
     }
 }

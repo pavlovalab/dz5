@@ -3,6 +3,7 @@ package myprojects.automation.assignment5;
 import myprojects.automation.assignment5.utils.logging.EventHandler;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.ie.InternetExplorerOptions;
@@ -15,6 +16,8 @@ import org.testng.annotations.Parameters;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -82,15 +85,15 @@ public abstract class BaseTest {
 //я из презент                }
 //я из презент                return null;
 
-//я из презент             case"mobile":
-//я из презент                 System.setProperty(
-//я из презент                         "webdriver.chrome.driver",
-//я из презент                         new File(BaseTest.class.getResource("/chromedriver.exe").getFile()).getPath());
-//я из презент                 Map<String,String> mobileEmulation = new HashMap<>();
-//я из презент                 mobileEmulation.put("deviceName","iPhone6");
-//я из презент                 ChromeOptions optionsRemote = new ChromeOptions();
-//я из презент                 ChromeOptions.setExperimentalOption ("mobileEmulation",mobileEmulation);
-// я из презент                return new ChromeDriver(ChromeOptions);
+            case "mobile":
+                System.setProperty(
+                        "webdriver.chrome.driver",
+                        new File(BaseTest.class.getResource("/chromedriver.exe").getFile()).getPath());
+                Map<String, String> mobileEmulation = new HashMap<>();
+                mobileEmulation.put("deviceName", "Galaxy S III");
+                ChromeOptions optionsRemote = new ChromeOptions();
+                optionsRemote.setExperimentalOption("mobileEmulation", mobileEmulation);
+                return new ChromeDriver(optionsRemote);
         }
     }
 
@@ -116,7 +119,7 @@ public abstract class BaseTest {
      */
     @BeforeClass
     @Parameters({"selenium.browser", "selenium.grid"})
-    public void setUp(@Optional("firefox") String browser, @Optional("") String gridUrl) {
+    public void setUp(@Optional("ie") String browser, @Optional("") String gridUrl) {
         // TODO create WebDriver instance according to passed parameters
         driver = new EventFiringWebDriver(getDriver(browser));
         driver.register(new EventHandler());
@@ -150,7 +153,7 @@ public abstract class BaseTest {
      */
     private boolean isMobileTesting(String browser) {
         switch (browser) {
-            case "android":
+            case "mobile":
                 return true;
             case "firefox":
             case "ie":
