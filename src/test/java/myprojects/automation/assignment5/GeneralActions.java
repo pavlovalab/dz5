@@ -4,10 +4,7 @@ package myprojects.automation.assignment5;
 import myprojects.automation.assignment5.model.ProductData;
 import myprojects.automation.assignment5.utils.Properties;
 import myprojects.automation.assignment5.utils.logging.CustomReporter;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -54,6 +51,38 @@ public class GeneralActions {
         else assertTrue(rows.isEmpty(), "Не полная версия сайта");
     }
 
+    /**
+     * Extracts product information from opened product details page.
+     *
+     * @return
+     */
+    public ProductData getOpenedProductInfo() {
+        CustomReporter.logAction("Get information about currently opened product");
+
+        String product_name = driver.findElement(By.cssSelector(".row>div>h1")).getText();
+        String product_price = driver.findElement(By.cssSelector(".current-price>span")).getAttribute("content");
+
+
+        WebElement qtyW = driver.findElement(By.cssSelector("#product-availability"));
+        assertTrue(qtyW.getText().toLowerCase().contains("in stock"), "Нет в наличии выбранного товара");
+
+        qtyW = driver.findElement(By.cssSelector(".nav-link[href='#product-details']"));
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", qtyW);
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".nav-link.active[href='#product-details']")));
+
+        int index = -1;
+        String qtyS = "";
+        do {
+            qtyS = driver.findElement(By.cssSelector(".product-quantities>span")).getText();
+            index = qtyS.indexOf(" ");
+        } while (index == -1);
+
+        int qty = Integer.parseInt(qtyS.substring(0, index).trim());
+        return new ProductData(product_name, qty, Float.parseFloat(product_price), driver.getCurrentUrl());
+    }
+
     public void openRandomProduct() {
         // TODO implement logic to open random product before purchase
         navigate(Properties.getBaseUrl());
@@ -79,30 +108,20 @@ public class GeneralActions {
 
         WebElement prod = rows.get(index);
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", prod);
-        //      rows.get(index).click();
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("main")));
     }
 
-    /**
-     * Extracts product information from opened product details page.
-     *
-     * @return
-     */
-    public ProductData getOpenedProductInfo() {
-        CustomReporter.logAction("Get information about currently opened product");
-
-        String product_name = driver.findElement(By.cssSelector(".row>div>h1")).getText();
-        String product_price = driver.findElement(By.cssSelector(".current-price>span")).getAttribute("content");
-        return new ProductData(product_name, 0, Float.parseFloat(product_price));
-    }
-
     public void addProductToCart(ProductData product) throws InterruptedException {
 
-//        Thread.sleep(2000);
-        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("#quantity_wanted[style='display: block;']")));
-        WebElement btn = driver.findElement(By.cssSelector(".add-to-cart"));
+        CustomReporter.log("Добавить продукт в корзину");
 
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".ui-autocomplete")));
+
+        String prod_url = driver.getCurrentUrl();
+
+        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".add-to-cart")));
+        WebElement btn = driver.findElement(By.cssSelector(".add-to-cart"));
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
 //        driver.findElement(By.cssSelector("button.add-to-cart")).click();
 
@@ -111,6 +130,8 @@ public class GeneralActions {
         btn = driver.findElement(By.cssSelector(".cart-content>.btn-primary"));
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
 
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".ui-autocomplete")));
+
         List<WebElement> rows = driver.findElements(By.cssSelector(".cart-item"));
         assertTrue(!rows.isEmpty(), "Пустой список в корзине");
 
@@ -118,30 +139,103 @@ public class GeneralActions {
 
         assertEquals(driver.findElement(By.cssSelector(".product-line-info>a")).getText().toUpperCase(), product.getName().toUpperCase(), "Название продукта не соответствует");
 
-        List<WebElement> rows2 = driver.findElements(By.cssSelector(".product-line-info>.value"));
+        assertTrue(driver.findElement(By.cssSelector(".product-price>strong")).getText().contains(product.getPrice()), "Не соответствует цена продукта в корзине");
+        assertEquals(driver.findElement(By.name("product-quantity-spin")).getAttribute("value"), "1", "Не соответствует количество продукта в корзине");
+    }
 
-        assertTrue(driver.findElement(By.cssSelector(".product-price>strong")).getText().contains(product.getPrice()), "Не соответствует цена продукта");
-        assertEquals(driver.findElement(By.name("product-quantity-spin")).getAttribute("value"), "1", "Не соответствует количество продукта");
+    public void orderCreation() {
 
-        btn = driver.findElement(By.cssSelector("div.checkout>div>.btn"));
+        CustomReporter.log("Оформление заказа");
+
+        WebElement btn = driver.findElement(By.cssSelector("div.checkout>div>.btn"));
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
 
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".ui-autocomplete")));
 
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("body#checkout")));
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("firstname")));
+        driver.findElement(By.name("firstname")).sendKeys(Keys.BACK_SPACE);
         driver.findElement(By.name("firstname")).sendKeys("Alex");
         driver.findElement(By.name("lastname")).sendKeys("Pav");
-        driver.findElement(By.name("email")).sendKeys("alex@pav.by");
+        driver.findElement(By.name("email")).sendKeys("alex@pav.ua");
 
-        btn = driver.findElement(By.cssSelector("button.continue"));
+        btn = driver.findElement(By.cssSelector("button[name='continue'][data-link-action='register-new-customer']"));
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
 
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".ui-autocomplete")));
 
         wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("body#checkout")));
-        driver.findElement(By.name("address1")).sendKeys("Rokossovskogo");
-        driver.findElement(By.name("postcode")).sendKeys("220094");
-        driver.findElement(By.name("city")).sendKeys("Minsk");
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("address1")));
+        driver.findElement(By.name("address1")).sendKeys(Keys.BACK_SPACE);
+        driver.findElement(By.name("address1")).sendKeys("пер. Кияновский 12");
+        driver.findElement(By.name("postcode")).sendKeys("22009");
+        driver.findElement(By.name("city")).sendKeys("Киев");
 
-        btn = driver.findElement(By.cssSelector("button.continue"));
+        btn = driver.findElement(By.cssSelector("button[name='confirm-addresses']"));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".ui-autocomplete")));
+
+        btn = driver.findElement(By.cssSelector("button[name='confirmDeliveryOption']"));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".ui-autocomplete")));
+
+        btn = driver.findElement(By.cssSelector("#payment-option-1"));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+
+        btn = driver.findElement(By.cssSelector("input[name='conditions_to_approve[terms-and-conditions]']"));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+
+        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("#payment-confirmation>div>button")));
+
+        btn = driver.findElement(By.cssSelector("#payment-confirmation>div>button"));
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
     }
+
+    public void orderValidate(ProductData product) {
+
+        CustomReporter.log("Проверка заказа");
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".ui-autocomplete")));
+
+        WebElement mes = driver.findElement(By.cssSelector("#content-hook_order_confirmation>.card-block>div>div>.card-title"));
+        assertTrue(mes.getText().toLowerCase().contains("ваш заказ подтверждён"), "Нет сообщения о подтверждении заказа");
+
+        List<WebElement> rows2 = driver.findElements(By.cssSelector(".order-line"));
+        assertTrue(!rows2.isEmpty(), "Пустой список в заказе");
+
+        assertEquals(rows2.size(), 1, "В заказе больше одной строки");
+
+        WebElement prod = rows2.get(0);
+
+        assertTrue(prod.findElement(By.cssSelector(".details")).getText().toUpperCase().contains(product.getName().toUpperCase()), "Название продукта не соответствует в заказе");
+
+        assertTrue(prod.findElement(By.cssSelector(".qty>.row>.text-xs-left")).getText().contains(product.getPrice()), "Не соответствует цена продукта в заказе");
+//        assertTrue(driver.findElement(By.cssSelector(".product-quantities>span")).getText().contains(newProduct.getQty().toString()), "Не соответствует количество продукта");
+
+//
+    }
+
+    public void CheckUpdate(ProductData product) {
+
+        CustomReporter.log("Проверка изменения наличия");
+
+        navigate(product.getUrl());
+
+        WebElement qtyW = driver.findElement(By.cssSelector(".nav-link[href='#product-details']"));
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", qtyW);
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".nav-link.active[href='#product-details']")));
+
+        int index = -1;
+        String qtyS = "";
+        do {
+            qtyS = driver.findElement(By.cssSelector(".product-quantities>span")).getText();
+            index = qtyS.indexOf(" ");
+        } while (index == -1);
+        int qty = Integer.parseInt(qtyS.substring(0, index).trim()) + 1;
+
+        assertEquals(qty, product.getQty(), "Не уменьшилось количество продукта в наличии");
+     }
 }

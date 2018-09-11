@@ -2,6 +2,8 @@ package myprojects.automation.assignment5.tests;
 
 import myprojects.automation.assignment5.BaseTest;
 import myprojects.automation.assignment5.model.ProductData;
+import myprojects.automation.assignment5.utils.logging.CustomReporter;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.testng.annotations.Test;
 
 public class PlaceOrderTest extends BaseTest {
@@ -25,12 +27,17 @@ public class PlaceOrderTest extends BaseTest {
         // add product to Cart and validate product information in the Cart
         actions.addProductToCart(product);
 
-        Thread.sleep(10000);
         // proceed to order creation, fill required information
+        actions.orderCreation();
 
         // place new order and validate order summary
+        actions.orderValidate(product);
 
         // check updated In Stock value
+        actions.CheckUpdate(product);
+
+        CustomReporter.log("Тест пройден успешно");
+
     }
 
 }

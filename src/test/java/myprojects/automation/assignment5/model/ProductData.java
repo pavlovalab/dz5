@@ -11,15 +11,21 @@ public class ProductData {
     private String name;
     private int qty;
     private float price;
+    private String url;
 
-    public ProductData(String name, int qty, float price) {
+    public ProductData(String name, int qty, float price, String url) {
         this.name = name;
         this.qty = qty;
         this.price = price;
+        this.url = url;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getUrl() {
+        return url;
     }
 
     public int getQty() {
@@ -40,6 +46,6 @@ public class ProductData {
         return new ProductData(
                 "New Product " + System.currentTimeMillis(),
                 random.nextInt(100) + 1,
-                (float) Math.round(random.nextInt(100_00) + 1) / 100);
+                (float) Math.round(random.nextInt(100_00) + 1) / 100, "");
     }
 }
